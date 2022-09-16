@@ -4,11 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Telegram.Bot;
 
 namespace TgSF.Core
 {
     public static class Settings
     {
+        private static ITelegramBotClient _tgBot;
+        public static ITelegramBotClient TGBot
+        {
+            get => _tgBot;
+            set
+            {
+                _tgBot = value;
+            }
+        }
+
         static readonly RegistryKey reg = Registry.CurrentUser.CreateSubKey("TgSF",true);
 
         static readonly string pathTgSF = reg.GetValue("path").ToString();
