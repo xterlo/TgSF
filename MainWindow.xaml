@@ -1,0 +1,72 @@
+﻿<Window x:Class="TgSF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TgSF" 
+        xmlns:modelview="clr-namespace:TgSF.MVVM.ModelView" 
+        d:DataContext="{d:DesignInstance Type=modelview:MainWindowViewModel}"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        MinWidth="750"
+        MinHeight="200">
+    
+    <Window.DataContext>
+        <modelview:MainWindowViewModel/>
+    </Window.DataContext>
+    <Grid 
+        Background="Green">
+        <Grid
+            Grid.Column="2"
+            Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width=".2*"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width=".05*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Label
+                Content="Введите путь:"
+                FontSize="16"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"/>
+            <TextBox
+                Grid.Column="1"
+                Margin="50 0"
+                Height="30"
+                IsEnabled="False"
+                Text="{Binding SyncPath, UpdateSourceTrigger=PropertyChanged}"/>
+            <Button
+                Grid.Column="2"
+                Height="30"
+                Width="30"
+                Margin="0 0 5 0"
+                Command="{Binding ChoosePathCommand}"/>
+            <Label
+                Grid.Row="1"
+                Content="Введите токен:"
+                FontSize="16"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"/>
+            <TextBox
+                Grid.Column="1"
+                Height="30"
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                Margin="50 0"
+                Text="{Binding TgToken, UpdateSourceTrigger=PropertyChanged}"
+                />
+            <Button
+                Grid.Row="2"
+                Grid.ColumnSpan="3"
+                Background="DarkBlue"
+                Content="Синхронизировать"
+                FontSize="32"
+                HorizontalAlignment="Center"/>
+        </Grid>
+    </Grid>
+</Window>
