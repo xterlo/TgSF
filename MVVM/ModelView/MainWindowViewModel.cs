@@ -1,26 +1,36 @@
 ﻿using Microsoft.Win32;
+
 using Ookii.Dialogs.Wpf;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Xml;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 using TgSF.Core;
-using Xceed.Words.NET;
+
 
 namespace TgSF.MVVM.ModelView
 {
     public class MainWindowViewModel : ObserverObject
     {
+        public ICommand WindowLoadedCommand { get => new RelayCommand(WindowLoaded); }
         public ICommand ChoosePathCommand { get => new RelayCommand(ChoosePath); }
         public ICommand SyncFilesCommand { get => new RelayCommand(SyncFiles); }
-        public ICommand TgTokenCheckerCommand { get => new RelayCommand(TgTokenChecker); }
-        
+        public ICommand TgTokenCheckerCommand { get => new RelayCommand<Task>((e) => { TgTokenChecker(); }); }
+        public ICommand TgChatIdCheckerCommand { get => new RelayCommand<Task>((e) => { TgChatIdChecker(); }); }
+
+        DBUtils DataBase;
+
+        private bool isHiddenAuth = false;
 
         private string _tgToken= Settings.TgToken;
         public string TgToken
@@ -46,6 +56,42 @@ namespace TgSF.MVVM.ModelView
             }
         }
 
+        private string _chatID = Settings.ChatId;
+        public string ChatId
+        {
+            get => _chatID;
+            set
+            {
+                _chatID = value;
+                Settings.ChatId = value;
+                OnPropertyChanged(nameof(ChatId));
+            }
+        }
+
+        private bool _isChatIdEnabled=false;
+        public bool IsChatIdEnabled
+        {
+            get => _isChatIdEnabled;
+            set {
+                _isChatIdEnabled = value;
+                OnPropertyChanged(nameof(IsChatIdEnabled));
+            }
+
+        }
+
+        public async void WindowLoaded()
+        {
+            isHiddenAuth = true;
+            if (!string.IsNullOrEmpty(Settings.TgToken))
+                await TgTokenChecker();
+
+            if (!string.IsNullOrEmpty(Settings.ChatId) && !(Settings.TGBot is null))
+                await TgChatIdChecker();
+            
+            DataBase =new DBUtils(DBSQLServerUtils.GetDBConnection()) ;
+            isHiddenAuth = false;
+        }
+
         public void ChoosePath()
         {
             VistaFolderBrowserDialog DialogPath = new VistaFolderBrowserDialog();
@@ -55,14 +101,18 @@ namespace TgSF.MVVM.ModelView
             }
         }
 
-        public async void TgTokenChecker()
+        public async Task TgTokenChecker()
         {
+
             var tgBot = new TelegramBotClient(TgToken);
             try
             {
                 var tgBotAuth = await tgBot.GetMeAsync();
-                MessageBox.Show($"Bot: {tgBotAuth.Username}", "Success");
                 Settings.TGBot = tgBot;
+                if (!isHiddenAuth) MessageBox.Show($"Bot: {tgBotAuth.Username}", "Success");
+                IsChatIdEnabled = true;
+                
+                
             }
             catch (Telegram.Bot.Exceptions.ApiRequestException)
             {
@@ -71,22 +121,41 @@ namespace TgSF.MVVM.ModelView
 
         }
 
-        public void SyncFiles()
+        public async Task TgChatIdChecker()
         {
+            var tgBot = Settings.TGBot;
 
-            string extractPath = @"C:\Users\xterl\Documents\tgfs";
-            string wordFile = Path.Combine(extractPath, "test1.docx");
-            string folder = "word/media";
-            using (ZipArchive archive = ZipFile.OpenRead(Path.Combine(extractPath, "test1.docx")))
+            try
             {
-                foreach (ZipArchiveEntry entry in archive.Entries)
-                {
-                    if (entry.FullName.IndexOf(folder) == 0)
-                    {
-                        entry.ExtractToFile(Path.Combine(extractPath, entry.Name));
-                    }
-                }
+                var tgBotAuth = await tgBot.GetChatAsync(Settings.ChatId);
+                if (!isHiddenAuth) MessageBox.Show($"Chat with: {tgBotAuth.Username}", "Success");
+                IsChatIdEnabled = true;
             }
+            catch ( Telegram.Bot.Exceptions.ApiRequestException e)
+            {
+                MessageBox.Show(e.Message, "Error");
+            }
+        }
+
+        public async void SyncFiles()
+        {
+            //try
+            //{
+            //    var tgBot = Settings.TGBot;
+            //    await tgBot.SendTextMessageAsync(Settings.ChatId, ExtractText("test1.docx"));
+            //    var images = ExtractImages("test1.docx");
+            //    List<IAlbumInputMedia> streamArray = new List<IAlbumInputMedia>();
+            //    var a = images.Select(x =>
+            //       new InputMediaPhoto(new InputMedia(x.Value, x.Key)) 
+            //       { Caption = "TEST IMAGES" }).ToArray();
+            //    streamArray.AddRange(a);
+            //    await tgBot.SendMediaGroupAsync(Settings.ChatId, streamArray);
+            //}
+            //catch( Exception e)
+            //{
+            //    MessageBox.Show(e.Message, "ERROR");
+            //}
+
         }
     }
 }
