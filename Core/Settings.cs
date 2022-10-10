@@ -24,9 +24,11 @@ namespace TgSF.Core
 
         static readonly string pathTgSF = reg.GetValue("path").ToString();
         static readonly string tokenTgSF = reg.GetValue("token").ToString();
+        static readonly string chatidTgSF = reg.GetValue("chatid").ToString();
 
         private static string _syncPath = pathTgSF is null ? "" : pathTgSF;
         private static string _tgToken = tokenTgSF is null ? "" : tokenTgSF;
+        private static string _chatidTgSF = chatidTgSF is null ? "" : chatidTgSF;
 
         public static string SyncPath
         {
@@ -42,6 +44,15 @@ namespace TgSF.Core
             set {
                 reg.SetValue("token", value);
                 _tgToken = value;
+            }
+        }
+        public static string ChatId
+        {
+            get { return _chatidTgSF; }
+            set
+            {
+                reg.SetValue("chatid", value);
+                _chatidTgSF = value;
             }
         }
     }
