@@ -7,6 +7,7 @@
         xmlns:modelview="clr-namespace:TgSF.MVVM.ModelView" 
         d:DataContext="{d:DesignInstance Type=modelview:MainWindowViewModel}"
         mc:Ignorable="d"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         Title="MainWindow" Height="450" Width="800"
         MinWidth="750"
         MinHeight="200">
@@ -16,6 +17,11 @@
     </Window.DataContext>
     <Grid 
         Background="Green">
+        <i:Interaction.Triggers>
+            <i:EventTrigger EventName="Loaded">
+                <i:InvokeCommandAction Command="{Binding WindowLoadedCommand}"/>
+            </i:EventTrigger>
+        </i:Interaction.Triggers>
         <Grid
             Grid.Column="2"
             Grid.Row="3">
@@ -25,6 +31,7 @@
                 <ColumnDefinition Width=".05*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
+                <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
@@ -66,8 +73,30 @@
                 Width="30"
                 Margin="0 0 5 0"
                 Command="{Binding TgTokenCheckerCommand}"/>
-            <Button
+            <Label
                 Grid.Row="2"
+                Content="Введите id чата:"
+                FontSize="16"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"/>
+            <TextBox
+                Grid.Column="1"
+                IsEnabled="{Binding IsChatIdEnabled}"
+                Height="30"
+                Grid.Row="2"
+                Margin="50 0"
+                Text="{Binding ChatId, UpdateSourceTrigger=PropertyChanged}"
+                />
+            <Button
+                Grid.Column="2"
+                Grid.Row="2"
+                IsEnabled="{Binding IsChatIdEnabled}"
+                Height="30"
+                Width="30"
+                Margin="0 0 5 0"
+                Command="{Binding TgChatIdCheckerCommand}"/>
+            <Button
+                Grid.Row="3"
                 Grid.ColumnSpan="3"
                 Background="DarkBlue"
                 Content="Синхронизировать"

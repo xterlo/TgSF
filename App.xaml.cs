@@ -24,7 +24,10 @@ namespace TgSF
                 else Settings.TgToken = helloKey.GetValue("token").ToString();
 
             if (helloKey.GetValue("path") is null) helloKey.SetValue("path", "");
-                else Settings.TgToken = helloKey.GetValue("token").ToString();
+                else Settings.SyncPath = helloKey.GetValue("path").ToString();
+
+            if (helloKey.GetValue("chatid") is null) helloKey.SetValue("chatid", "");
+                else Settings.ChatId = helloKey.GetValue("chatid").ToString();
 
             Console.WriteLine(helloKey);
             base.OnStartup(e);
