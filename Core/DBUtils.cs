@@ -8,18 +8,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using static TgSF.Core.DBTables;
 
 namespace TgSF.Core
 {
-    
+
 
     public enum DBQuery
     {
         WriteData,
         ReadData
     }
-    
-    public class DBUtils
+
+    public class DBUtils : FilesSync
     {
         SqliteConnection db;
 
@@ -30,7 +31,7 @@ namespace TgSF.Core
             {
                 string query = @"CREATE TABLE [SyncedFiles]
                                 (
-	                                [Id] INT NOT NULL PRIMARY KEY,
+	                                [Id] INTEGER PRIMARY KEY NOT NULL,
 	                                [FileName] TEXT NOT NULL ,
 	                                [FilePath] TEXT NOT NULL,
 	                                [FileHash] TEXT NOT NULL,
@@ -40,7 +41,7 @@ namespace TgSF.Core
                                 );
                                 CREATE TABLE [TGBot]
                                 (
-	                                [Id] INT NOT NULL PRIMARY KEY,
+	                                [Id] INTEGER PRIMARY KEY NOT NULL,
 	                                [MessageID] INT NOT NULL,
 	                                [FileName] TEXT NOT NULL,
 	                                [ModifyTime] DATETIME NOT NULL,
@@ -48,12 +49,14 @@ namespace TgSF.Core
                                 );
                                 ";
 
+
+
                 var command = new SqliteCommand(query, db);
                 try
                 {
                     db.Open();
                     command.ExecuteNonQuery();
-                    MessageBox.Show("Database is created successfully", "MyProgram");
+                    MessageBox.Show("Database is created successfully", "TGFS");
                 }
                 catch (Exception ex)
                 {
@@ -67,17 +70,46 @@ namespace TgSF.Core
                     }
                 }
             }
-           
+
         }
 
-        public void ReadData()
+        public static void ReadData()
         {
 
         }
 
-        public void WriteData()
+        public void WriteDataToSyncedFile(List<FilesSync> files)
         {
-
+            foreach (FilesSync file in files)
+            {
+                string query = $@"INSERT INTO [SyncedFiles] VALUES (
+                NULL,
+	            '{file.FileName}',
+                '{file.FilePath}',
+                '{file.FileHash}',
+                '{file.CreationTime}',
+                '{file.ModifyTime}',
+                '{file.TGMessageID}');
+                ";
+                var command = new SqliteCommand(query, db);
+                try
+                {
+                    db.Open();
+                    command.ExecuteNonQuery();
+                    MessageBox.Show("ZAEBIS", "TGFS");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "ERROR");
+                }
+                finally
+                {
+                    if ((db.State == ConnectionState.Open))
+                    {
+                        db.Close();
+                    }
+                }
+            }
         }
     }
 }

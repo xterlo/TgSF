@@ -6,16 +6,14 @@ using System.Threading.Tasks;
 
 namespace TgSF.Core
 {
-    public class DBTables
+    public class DBTables 
     {
-        public class SyncedFiles
+        public class SyncedFiles 
         {
-            public string FileName;
-            public string FilePath;
-            public string FileHash;
-            public DateTime CreationTime;
-            public DateTime ModifyTime;
-            public string TGMessageID;
+            //public SyncedFiles()
+            //{
+                
+            //}
         }
 
         public class TGBot
@@ -26,5 +24,7 @@ namespace TgSF.Core
             public DateTime ModifyTime;
             public string Caption;
         }
+
+
     }
 }

@@ -139,22 +139,13 @@ namespace TgSF.MVVM.ModelView
 
         public async void SyncFiles()
         {
-            //try
-            //{
-            //    var tgBot = Settings.TGBot;
-            //    await tgBot.SendTextMessageAsync(Settings.ChatId, ExtractText("test1.docx"));
-            //    var images = ExtractImages("test1.docx");
-            //    List<IAlbumInputMedia> streamArray = new List<IAlbumInputMedia>();
-            //    var a = images.Select(x =>
-            //       new InputMediaPhoto(new InputMedia(x.Value, x.Key)) 
-            //       { Caption = "TEST IMAGES" }).ToArray();
-            //    streamArray.AddRange(a);
-            //    await tgBot.SendMediaGroupAsync(Settings.ChatId, streamArray);
-            //}
-            //catch( Exception e)
-            //{
-            //    MessageBox.Show(e.Message, "ERROR");
-            //}
+
+            List<FilesSync> files = DataBase.Sync();
+            DataBase.WriteDataToSyncedFile(files);
+            
+            
+            Console.WriteLine("asd");
+
 
         }
     }
