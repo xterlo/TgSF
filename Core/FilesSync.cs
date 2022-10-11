@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using static TgSF.Core.DBTables;
 
 namespace TgSF.Core
@@ -13,7 +15,6 @@ namespace TgSF.Core
     {
         public string FileName;
         public string FilePath;
-        public string FileHash;
         public DateTime CreationTime;
         public DateTime ModifyTime;
         public string TGMessageID;
@@ -25,42 +26,44 @@ namespace TgSF.Core
         public FilesSync(FilesSync fs)
         {
             FileName = fs.FileName;
-            FilePath = fs.FilePath;
-            FileHash = fs.FileHash;
+            FilePath = fs.FilePath;            ;
             CreationTime = fs.CreationTime;
             ModifyTime = fs.ModifyTime;
             TGMessageID = fs.TGMessageID;
         }
 
+        public FilesSync(string fileName, string filePath, DateTime creationTime, DateTime modifyTime, string tGMessageID)
+        {
+            FileName = fileName;
+            FilePath = filePath;
+            CreationTime = creationTime;
+            ModifyTime = modifyTime;
+            TGMessageID = tGMessageID;
+        }
+
         public List<FilesSync> Sync()
         {
             List <FilesSync> files = new List<FilesSync>();
+            
             foreach (var element in Directory.GetFiles(Settings.SyncPath))
             {
-                Console.WriteLine(element);
-                List<string> splittedFile = element.Split('\\').ToList<string>();
-                FileName = splittedFile.Last();
+                
+
                 FilePath = element;
-                FileHash= GetFileHash();
+                List<string> splittedFile = element.Split('\\').ToList();
+                FileName = splittedFile.Last();           
+
+                if (Regex.IsMatch(FileName, @"^[~$]."))
+                    continue;
+
                 CreationTime = File.GetCreationTime(element);
                 ModifyTime = File.GetLastWriteTime(element);
                 TGMessageID = "test";
                 FilesSync filesSync = new FilesSync(this);
+                if (Settings.DataBase.FindFileId(filesSync) != -1) continue;
                 files.Add(filesSync);
             }
             return files;
-        }
-
-        private string GetFileHash()
-        {
-            using (var md5 = MD5.Create())
-            {
-                using (var stream = File.OpenRead(FilePath))
-                {
-                    var hash = md5.ComputeHash(stream);
-                    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-                }
-            }
         }
 
     }

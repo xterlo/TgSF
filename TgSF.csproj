@@ -202,6 +202,7 @@
     <Compile Include="Core\DBSQLServerUtils.cs" />
     <Compile Include="Core\DBTables.cs" />
     <Compile Include="Core\DBUtils.cs" />
+    <Compile Include="Core\FileEventsHandler.cs" />
     <Compile Include="Core\FilesSync.cs" />
     <Compile Include="Core\ObserverObject.cs" />
     <Compile Include="Core\RelayCommand.cs" />

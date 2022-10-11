@@ -55,5 +55,7 @@ namespace TgSF.Core
                 _chatidTgSF = value;
             }
         }
+
+        public static DBUtils DataBase;
     }
 }

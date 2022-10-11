@@ -18,6 +18,7 @@ using Telegram.Bot.Types;
 using TgSF.Core;
 
 
+
 namespace TgSF.MVVM.ModelView
 {
     public class MainWindowViewModel : ObserverObject
@@ -28,7 +29,7 @@ namespace TgSF.MVVM.ModelView
         public ICommand TgTokenCheckerCommand { get => new RelayCommand<Task>((e) => { TgTokenChecker(); }); }
         public ICommand TgChatIdCheckerCommand { get => new RelayCommand<Task>((e) => { TgChatIdChecker(); }); }
 
-        DBUtils DataBase;
+        
 
         private bool isHiddenAuth = false;
 
@@ -88,8 +89,15 @@ namespace TgSF.MVVM.ModelView
             if (!string.IsNullOrEmpty(Settings.ChatId) && !(Settings.TGBot is null))
                 await TgChatIdChecker();
             
-            DataBase =new DBUtils(DBSQLServerUtils.GetDBConnection()) ;
+            Settings.DataBase =new DBUtils(DBSQLServerUtils.GetDBConnection()) ;
             isHiddenAuth = false;
+
+
+            #region Do After Check Changes When Program Was Closed
+
+            FileEventsHandler.AttachEvents();
+
+            #endregion
         }
 
         public void ChoosePath()
@@ -127,6 +135,7 @@ namespace TgSF.MVVM.ModelView
 
             try
             {
+                
                 var tgBotAuth = await tgBot.GetChatAsync(Settings.ChatId);
                 if (!isHiddenAuth) MessageBox.Show($"Chat with: {tgBotAuth.Username}", "Success");
                 IsChatIdEnabled = true;
@@ -139,14 +148,8 @@ namespace TgSF.MVVM.ModelView
 
         public async void SyncFiles()
         {
-
-            List<FilesSync> files = DataBase.Sync();
-            DataBase.WriteDataToSyncedFile(files);
-            
-            
-            Console.WriteLine("asd");
-
-
+            List<FilesSync> files = Settings.DataBase.Sync();
+            Settings.DataBase.AddNewFileToDB(files.ToArray());                                
         }
     }
 }
