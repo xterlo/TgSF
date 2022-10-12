@@ -29,24 +29,25 @@ namespace TgSF.Core
             this.db = db;
             if (!File.Exists(@"MainDB.db"))
             {
-                string query = @"CREATE TABLE [SyncedFiles]
+                string query = @"
+                                CREATE TABLE [TGBot]
+                                (
+	                                [Id] INTEGER PRIMARY KEY NOT NULL,
+	                                [MessageID] INTEGER,
+	                                [FileName] TEXT NOT NULL,
+	                                [ModifyTime] DATETIME NOT NULL,
+	                                [Caption] TEXT NOT NULL
+                                );
+
+                                CREATE TABLE [SyncedFiles]
                                 (
 	                                [Id] INTEGER PRIMARY KEY NOT NULL,
 	                                [FileName] TEXT NOT NULL ,
 	                                [FilePath] TEXT NOT NULL,
 	                                [CreationTime] DATETIME NOT NULL,
 	                                [ModifyTime] DATETIME NOT NULL,
-	                                [TGMessageID] TEXT DEFAULT NULL
-                                );
-                                CREATE TABLE [TGBot]
-                                (
-	                                [Id] INTEGER PRIMARY KEY NOT NULL,
-	                                [MessageID] INT NOT NULL,
-	                                [FileName] TEXT NOT NULL,
-	                                [ModifyTime] DATETIME NOT NULL,
-	                                [Caption] TEXT NOT NULL
-                                );
-                                ";
+	                                [TGMessageID] INTEGER REFERENCES TGBot (Id) ON DELETE SET NULL
+                                );";
 
 
 
@@ -85,7 +86,6 @@ namespace TgSF.Core
                               WHERE
 	                            FileName='{file.FileName}' AND                                
                                 FilePath='{file.FilePath}';";
-            int id;
             var a = SendQueryToDB(query, true);
             if (a is null)
                 return -1;
@@ -94,14 +94,15 @@ namespace TgSF.Core
             
         }
 
-        public void UpdateDataToSyncedFile(FilesSync file,FilesSync oldFile)
+        public void UpdateDataToSyncedFile(FilesSync file,FilesSync oldFile=null)
         {
+            var FileId = oldFile is null ? FindFileId(file) : FindFileId(oldFile);
             string query = $@"UPDATE [SyncedFiles]
                               SET
 	                              [FileName] = '{file.FileName}',                                  
 	                              [FilePath] = '{file.FilePath}', 
 	                              [ModifyTime] = '{file.ModifyTime}'
-                              WHERE [Id] = {FindFileId(oldFile)}; ";
+                              WHERE [Id] = {FileId}; ";
             SendQueryToDB(query);
         }
 
@@ -109,6 +110,7 @@ namespace TgSF.Core
         {
             foreach (FilesSync file in files)
             {
+                var tgID = file.TGMessageID != -1 ? file.TGMessageID.ToString() : "NULL";
                 string query = $@"INSERT INTO [SyncedFiles] 
                                   VALUES (
                                     NULL,
@@ -116,12 +118,14 @@ namespace TgSF.Core
                                     '{file.FilePath}',                                    
                                     '{file.CreationTime}',
                                     '{file.ModifyTime}',
-                                    '{file.TGMessageID}');";
+                                    {tgID});";
                 SendQueryToDB(query);
 
 
             }
         }
+
+        public void AddMsgInfo()
 
         private object SendQueryToDB(string query,bool read=false)
         {

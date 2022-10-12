@@ -16,8 +16,7 @@ using System.Xml;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TgSF.Core;
-
-
+using static TgSF.Core.TgFunctions;
 
 namespace TgSF.MVVM.ModelView
 {
@@ -28,8 +27,6 @@ namespace TgSF.MVVM.ModelView
         public ICommand SyncFilesCommand { get => new RelayCommand(SyncFiles); }
         public ICommand TgTokenCheckerCommand { get => new RelayCommand<Task>((e) => { TgTokenChecker(); }); }
         public ICommand TgChatIdCheckerCommand { get => new RelayCommand<Task>((e) => { TgChatIdChecker(); }); }
-
-        
 
         private bool isHiddenAuth = false;
 
@@ -82,6 +79,7 @@ namespace TgSF.MVVM.ModelView
 
         public async void WindowLoaded()
         {
+            FileEventsHandler fileEventsHandler = new FileEventsHandler();
             isHiddenAuth = true;
             if (!string.IsNullOrEmpty(Settings.TgToken))
                 await TgTokenChecker();
@@ -94,8 +92,8 @@ namespace TgSF.MVVM.ModelView
 
 
             #region Do After Check Changes When Program Was Closed
-
-            FileEventsHandler.AttachEvents();
+            SyncFiles();
+            fileEventsHandler.AttachEvents();
 
             #endregion
         }
@@ -111,45 +109,20 @@ namespace TgSF.MVVM.ModelView
 
         public async Task TgTokenChecker()
         {
-
-            var tgBot = new TelegramBotClient(TgToken);
-            try
-            {
-                var tgBotAuth = await tgBot.GetMeAsync();
-                Settings.TGBot = tgBot;
-                if (!isHiddenAuth) MessageBox.Show($"Bot: {tgBotAuth.Username}", "Success");
-                IsChatIdEnabled = true;
-                
-                
-            }
-            catch (Telegram.Bot.Exceptions.ApiRequestException)
-            {
-                MessageBox.Show("Неправильный токен", "Error");
-            }
-
+            IsChatIdEnabled = await TgAuth.TgTokenChecker(isHiddenAuth);
         }
 
         public async Task TgChatIdChecker()
         {
-            var tgBot = Settings.TGBot;
-
-            try
-            {
-                
-                var tgBotAuth = await tgBot.GetChatAsync(Settings.ChatId);
-                if (!isHiddenAuth) MessageBox.Show($"Chat with: {tgBotAuth.Username}", "Success");
-                IsChatIdEnabled = true;
-            }
-            catch ( Telegram.Bot.Exceptions.ApiRequestException e)
-            {
-                MessageBox.Show(e.Message, "Error");
-            }
+            IsChatIdEnabled = await TgAuth.TgChatIdChecker(isHiddenAuth);
         }
 
         public async void SyncFiles()
         {
-            List<FilesSync> files = Settings.DataBase.Sync();
-            Settings.DataBase.AddNewFileToDB(files.ToArray());                                
+            
+            //List<FilesSync> files = Settings.DataBase.Sync();
+            //Settings.DataBase.AddNewFileToDB(files.ToArray());                                
+            
         }
     }
 }

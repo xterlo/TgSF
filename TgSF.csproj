@@ -207,6 +207,7 @@
     <Compile Include="Core\ObserverObject.cs" />
     <Compile Include="Core\RelayCommand.cs" />
     <Compile Include="Core\Settings.cs" />
+    <Compile Include="Core\TgFunctions.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

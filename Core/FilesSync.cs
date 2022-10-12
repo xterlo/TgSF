@@ -17,7 +17,7 @@ namespace TgSF.Core
         public string FilePath;
         public DateTime CreationTime;
         public DateTime ModifyTime;
-        public string TGMessageID;
+        public int TGMessageID;
 
         public FilesSync()
         {
@@ -32,7 +32,7 @@ namespace TgSF.Core
             TGMessageID = fs.TGMessageID;
         }
 
-        public FilesSync(string fileName, string filePath, DateTime creationTime, DateTime modifyTime, string tGMessageID)
+        public FilesSync(string fileName, string filePath, DateTime creationTime, DateTime modifyTime, int tGMessageID)
         {
             FileName = fileName;
             FilePath = filePath;
@@ -51,14 +51,14 @@ namespace TgSF.Core
 
                 FilePath = element;
                 List<string> splittedFile = element.Split('\\').ToList();
-                FileName = splittedFile.Last();           
+                FileName = splittedFile.Last();
 
                 if (Regex.IsMatch(FileName, @"^[~$]."))
                     continue;
 
                 CreationTime = File.GetCreationTime(element);
                 ModifyTime = File.GetLastWriteTime(element);
-                TGMessageID = "test";
+                TGMessageID = 0;
                 FilesSync filesSync = new FilesSync(this);
                 if (Settings.DataBase.FindFileId(filesSync) != -1) continue;
                 files.Add(filesSync);

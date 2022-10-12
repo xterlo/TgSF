@@ -11,7 +11,7 @@ namespace TgSF.Core
     {
         private readonly Action<T> _execute = null;
         private readonly Func<T, bool> _canExecute = null;
-
+        
         public event EventHandler CanExecuteChanged
         {
             add { CommandManager.RequerySuggested += value; }
