@@ -33,9 +33,9 @@ namespace TgSF.Core
                                 CREATE TABLE [TGBot]
                                 (
 	                                [Id] INTEGER PRIMARY KEY NOT NULL,
-	                                [MessageID] INTEGER,
+	                                [MessageID] INTEGER UNIQUE,
 	                                [FileName] TEXT NOT NULL,
-	                                [ModifyTime] DATETIME NOT NULL,
+	                                [SendTime] DATETIME NOT NULL,
 	                                [Caption] TEXT NOT NULL
                                 );
 
@@ -46,7 +46,7 @@ namespace TgSF.Core
 	                                [FilePath] TEXT NOT NULL,
 	                                [CreationTime] DATETIME NOT NULL,
 	                                [ModifyTime] DATETIME NOT NULL,
-	                                [TGMessageID] INTEGER REFERENCES TGBot (Id) ON DELETE SET NULL
+	                                [TGMessageID] INTEGER DEFAULT NULL REFERENCES TGBot (MessageID) ON DELETE SET NULL
                                 );";
 
 
@@ -96,13 +96,23 @@ namespace TgSF.Core
 
         public void UpdateDataToSyncedFile(FilesSync file,FilesSync oldFile=null)
         {
+            
             var FileId = oldFile is null ? FindFileId(file) : FindFileId(oldFile);
+            string MsgId = "NULL";
+
+            if(!(oldFile is null) && oldFile.TGMessageID != -1) {
+                MsgId = oldFile.TGMessageID.ToString();
+            }
+            else if(oldFile is null && file.TGMessageID != -1 ) {
+                MsgId = file.TGMessageID.ToString();
+            }
             string query = $@"UPDATE [SyncedFiles]
                               SET
 	                              [FileName] = '{file.FileName}',                                  
 	                              [FilePath] = '{file.FilePath}', 
-	                              [ModifyTime] = '{file.ModifyTime}'
-                              WHERE [Id] = {FileId}; ";
+	                              [ModifyTime] = '{file.ModifyTime}',
+                                  [TGMessageID] = {MsgId}
+                                  WHERE [Id] = {FileId}; ";
             SendQueryToDB(query);
         }
 
@@ -125,7 +135,17 @@ namespace TgSF.Core
             }
         }
 
-        public void AddMsgInfo()
+        public void AddMsgInfo(TgSync tg)
+        {
+            string query = $@"INSERT INTO [TGBot] 
+                                  VALUES (
+                                    NULL,
+	                                '{tg.MessageID}',
+                                    '{tg.FileName}',                                    
+                                    '{tg.SendTime}',
+                                    '{tg.Caption}');";
+            SendQueryToDB(query);
+        }
 
         private object SendQueryToDB(string query,bool read=false)
         {

@@ -78,6 +78,7 @@ namespace TgSF.Core
             DateTime modifyTime = File.GetLastWriteTime(e.FullPath);
             FilesSync fs = new FilesSync(e.Name, e.FullPath, createTime, modifyTime, 0);
             QueueClass queueClass = new QueueClass(TypeQuery.update, fs);
+            
             if (queue.Count == 0)
             {
                 queue.Add(queueClass);
@@ -100,19 +101,22 @@ namespace TgSF.Core
             }
             else
                 queue.Add(queueClass);
-
-
-
         }
 
-        private static async void OnRenamed(object sender, RenamedEventArgs e)
+        private async void OnRenamed(object sender, RenamedEventArgs e)
         {
             DateTime createTime = File.GetCreationTime(e.FullPath);
             DateTime modifyTime = File.GetLastWriteTime(e.FullPath);
             FilesSync fs = new FilesSync(e.Name, e.FullPath, createTime, modifyTime, 0);
             FilesSync fsOld = new FilesSync(e.OldName, e.OldFullPath, createTime, modifyTime, 0);
-            //if (await TgFunctions.TgChat.SendFile(e.FullPath))
-            //    Settings.DataBase.UpdateDataToSyncedFile(fs, fsOld);
+            QueueClass queueClass = new QueueClass(TypeQuery.rename, fs,fsOld);
+            if (queue.Count == 0)
+            {
+                queue.Add(queueClass);
+                new Thread(WaitForFilePermissions).Start();
+            }
+            else
+                queue.Add(queueClass);
         }
 
         private async void WaitForFilePermissions()
@@ -131,10 +135,8 @@ namespace TgSF.Core
                                 {
                                     try
                                     {
-
-                                        queue.Remove(file);
-                                        Settings.DataBase.AddNewFileToDB(file.fs);
-
+                                            Settings.DataBase.AddNewFileToDB(file.fs);
+                                            queue.Remove(file);
                                     }
                                     catch (Exception ex)
                                     {
@@ -146,11 +148,12 @@ namespace TgSF.Core
                                 {
                                     try
                                     {
-                                        if (await TgFunctions.TgChat.SendFile(file.fs.FilePath) != -1)
-                                        {
+                                        //if (!(TgFunctions.TgChat.SendFile(file.fs) is null))
+                                        //{
+                                        file.oldFs.TGMessageID = -1;
                                             Settings.DataBase.UpdateDataToSyncedFile(file.fs, file.oldFs);
                                             queue.Remove(file);
-                                        }
+                                        //}
                                     }
 
                                     catch (Exception ex)
@@ -163,10 +166,20 @@ namespace TgSF.Core
                                 {
                                     try
                                     {
-                                        int msgID = await TgFunctions.TgChat.SendFile(file.fs.FilePath);
-                                        if (msgID != -1)
+                                        if (file.fs.TGMessageID == 0)
                                         {
-                                            file.fs.TGMessageID = msgID;
+                                            var msg = await TgFunctions.TgChat.SendFile(file.fs);
+                                            if (!(msg is null))
+                                            {
+                                                Settings.DataBase.AddMsgInfo(new TgSync(msg));
+                                                file.fs.TGMessageID = msg.MessageId;
+                                                Settings.DataBase.UpdateDataToSyncedFile(file.fs);
+                                                queue.Remove(file);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            var msg = await TgFunctions.TgChat.EditMessage(file.fs);
                                             Settings.DataBase.UpdateDataToSyncedFile(file.fs);
                                             queue.Remove(file);
                                         }
